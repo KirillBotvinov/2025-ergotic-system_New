@@ -1,0 +1,117 @@
+import wfdb
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+# 下载数据集  Загрузить набор данных
+def download_dataset():
+    wfdb.dl_database('mitdb', 'mitdb_data')
+
+
+# 加载数据
+def load_data():
+    records = wfdb.get_record_list('mitdb')
+    signals = []
+    labels = []
+    for record_name in records:
+        record = wfdb.rdrecord(f'mitdb_data/{record_name}')
+        ann = wfdb.rdann(f'mitdb_data/{record_name}', 'atr')
+        signal = record.p_signal[:, 0]
+        symbols = ann.symbol
+        for i in range(len(symbols)):
+            if symbols[i] in ['N', 'L', 'R', 'A', 'V']:
+                start = max(0, ann.sample[i] - 100)
+                end = min(len(signal), ann.sample[i] + 100)
+                segment = signal[start:end]
+                if len(segment) == 200:
+                    signals.append(segment)
+                    if symbols[i] == 'N':
+                        label = 0
+                    elif symbols[i] == 'L':
+                        label = 1
+                    elif symbols[i] == 'R':
+                        label = 2
+                    elif symbols[i] == 'A':
+                        label = 3
+                    elif symbols[i] == 'V':
+                        label = 4
+                    labels.append(label)
+    signals = np.array(signals)
+    labels = np.array(labels)
+    return signals, labels
+
+
+# 构建注意力机制层  Создание слоя механизма внимания
+class Attention(tf.keras.layers.Layer):
+    def __init__(self, units):
+        super(Attention, self).__init__()
+        self.W1 = tf.keras.layers.Dense(units)
+        self.W2 = tf.keras.layers.Dense(units)
+        self.V = tf.keras.layers.Dense(1)
+
+    def call(self, features, hidden):
+        hidden_with_time_axis = tf.expand_dims(hidden, 1)
+        score = tf.nn.tanh(self.W1(features) + self.W2(hidden_with_time_axis))
+        attention_weights = tf.nn.softmax(self.V(score), axis=1)
+        context_vector = attention_weights * features
+        context_vector = tf.reduce_sum(context_vector, axis=1)
+        return context_vector, attention_weights
+
+
+# 构建 LSTM 模型
+def build_model():
+    inputs = layers.Input(shape=(200, 1))
+    lstm = layers.LSTM(128, return_sequences=True)(inputs)
+    hidden = layers.LSTM(128)(lstm)
+    context_vector, attention_weights = Attention(64)(lstm, hidden)
+    outputs = layers.Dense(5, activation='softmax')(context_vector)
+    model = models.Model(inputs=inputs, outputs=outputs)
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+# 主函数
+def main():
+    # 下载数据集
+    download_dataset()
+    # 加载数据
+    signals, labels = load_data()
+    # 划分训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(signals, labels, test_size=0.2, random_state=42)
+    X_train = np.expand_dims(X_train, axis=-1)
+    X_test = np.expand_dims(X_test, axis=-1)
+    # 构建模型
+    model = build_model()
+    # 训练模型
+    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.1)
+    # 预测
+    y_pred = np.argmax(model.predict(X_test), axis=1)
+    # 建立混淆矩阵
+    cm = confusion_matrix(y_test, y_pred)
+    print("混淆矩阵:")
+    print(cm)
+
+    # 绘制混淆矩阵热力图
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=['N', 'L', 'R', 'A', 'V'],
+                yticklabels=['N', 'L', 'R', 'A', 'V'])
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title('Confusion Matrix')
+
+    # 保存图像
+    output_path = 'confusion_matrix.png'
+    plt.savefig(output_path)
+    print(f"混淆矩阵热力图已保存到 {output_path}")
+    # 显示图像（可选）
+    plt.show()
+
+if __name__ == "__main__":
+    main()

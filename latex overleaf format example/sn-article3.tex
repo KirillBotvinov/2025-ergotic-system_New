@@ -1,0 +1,209 @@
+%% 点击左上角菜单，将编译器选择为XeLaTeX
+%% Нажмите на меню в левом верхнем углу и выберите компилятор XeLaTeX
+
+\documentclass{article}
+\usepackage[a4paper, margin=1.5cm]{geometry}
+\usepackage[russian,english]{babel}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\setmainfont{Times New Roman}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=blue}
+\usepackage{float}
+\usepackage{ctex}
+\usepackage{paracol}
+\makeatletter
+\providecommand{\pcsync}{\par\vspace{\baselineskip}}
+\makeatother
+\usepackage[backend=biber, style=ieee]{biblatex}
+\usepackage{balance}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+% \title{Отчёт}
+\title{Отчёт  \ \large 报告}
+\author{Исса Мохаммад \ 伊萨·穆罕默德}
+\date{13 мая 2025 г. \ 2025年5月13日}
+
+\begin{document}
+\maketitle
+
+\begin{paracol}{2}
+\setcolumnwidth{0.47\textwidth,0.47\textwidth}
+\setlength{\columnsep}{20pt}
+\setlength{\emergencystretch}{3em}
+
+\section{Цель работы}
+\pcsync
+Целью данной работы является автоматическая классификация ЭКГ-записей по параметру здоровья пациента (\texttt{Healthy\_Status}) с использованием современных \texttt{AutoML}-фреймворков. Анализ выполняется на базе реальных медицинских данных, включающих временные и угловые параметры электрокардиограммы.
+\switchcolumn % switch to right
+
+\section{目标}
+\pcsync 
+本研究旨在利用现代的 \texttt{AutoML} 框架，根据患者的 \texttt{Healthy\_Status} 参数对心电图（ECG）记录进行自动分类。分析基于真实的医疗数据，包含心电图的时间和角度参数。
+
+\switchcolumn* % switch back to left
+
+\section{Метод}
+\pcsync
+\textbf{Выбор фреймворка.} Среди популярных AutoML-решений были рассмотрены FLAML, H2O AutoML и LightAutoML. Для решения задачи бинарной классификации был выбран фреймворк \texttt{FLAML}, поскольку он продемонстрировал наилучшие результаты при ограниченном времени обучения (60 секунд), что особенно важно в условиях ограниченных вычислительных ресурсов. FLAML автоматически подбирает оптимальную модель и её гиперпараметры, ориентируясь на метрику F1-score. В рамках эксперимента также были построены ROC-кривая и матрица ошибок для оценки качества классификации.
+
+\switchcolumn
+
+\section{方法}
+\pcsync
+\textbf{框架选择。} 本研究对主流的 AutoML 框架进行了评估，包括 FLAML、H2O AutoML 和 LightAutoML。最终选择了 \texttt{FLAML} 来解决二分类任务，因为它在仅限 60 秒训练时间的条件下表现最佳，尤其适用于计算资源有限的场景。FLAML 能够根据 F1 分数自动选择最优模型和超参数。在实验中还绘制了 ROC 曲线和混淆矩阵，以评估分类器的性能。
+
+\switchcolumn*
+
+\section{Обсуждение}
+\pcsync
+Исходный набор данных содержал более 30 признаков. После этапов очистки и отбора были оставлены ключевые переменные: \texttt{Count\_subj}, \texttt{rr\_interval}, \texttt{p\_end}, \texttt{qrs\_onset}, \texttt{qrs\_end}, \texttt{p\_axis}, \texttt{qrs\_axis}, \texttt{t\_axis}. 
+
+В результате обучения классификатор продемонстрировал следующие показатели:
+
+\begin{itemize}
+\item Точность (Accuracy): 85\%
+\item F1-мера для класса 1: 0.64
+\item Площадь под ROC-кривой (AUC): 0.92
+\end{itemize}
+
+Полученные результаты свидетельствуют о том, что модель способна эффективно различать два класса, несмотря на частичное перекрытие распределений признаков.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{confusion_matrix.png}
+    \caption{Матрица ошибок (Confusion Matrix)}
+    \label{fig:enter-label}
+\end{figure}
+
+Матрица ошибок отображает распределение предсказанных и фактических меток классов модели. Высокая концентрация значений на диагонали указывает на хорошую точность классификации.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{classification_report.png}
+\caption{Отчёт классификации}
+\end{figure}
+
+Классификационный отчёт предоставляет значения точности, полноты и F1-меры для каждого класса. Он позволяет оценить сбалансированность модели по метрикам.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{roc_curve.png}
+\caption{ROC-кривая}
+\end{figure}
+
+ROC-кривая иллюстрирует соотношение между истинно положительными и ложноположительными результатами. Площадь под кривой (AUC) равная 0.92 говорит о высокой способности модели различать классы.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{feature_importance.png}
+\caption{Важность признаков}
+\end{figure}
+
+График важности признаков демонстрирует вклад каждого входного параметра в предсказание модели. Наиболее значимые признаки оказывают наибольшее влияние на результат классификации.
+
+\switchcolumn
+
+\section{讨论}
+\pcsync
+原始数据集中包含了 30 多个特征变量。经过数据清洗和筛选后，保留了以下关键特征：Count\_subj、rr\_interval、p\_end、qrs\_onset、qrs\_end、p\_axis、qrs\_axis、t\_axis。训练得到的分类模型具有以下性能指标：
+
+\begin{itemize}
+\item 准确率（Accuracy）：85\%
+\item F1 分数（类别 1）：0.64
+\item AUC 值：0.92
+\end{itemize}
+
+这表明尽管两个类别在数据上存在重叠，模型仍能成功区分它们。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{confusion_matrix.png}
+    \caption{混淆矩阵}
+    \label{fig:enter-label}
+\end{figure}
+
+混淆矩阵展示了模型预测结果与实际类别之间的对应关系。对角线上的高密度表示分类器具有良好的准确性。
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{classification_report.png}
+\caption{分类报告}
+\end{figure}
+
+分类报告列出了每个类别的精确率、召回率和 F1 分数，用于评估模型的性能与平衡性。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{roc_curve.png}
+\caption{ROC 曲线}
+\end{figure}
+
+ROC 曲线展示了模型在不同阈值下的真阳性率与假阳性率之间的权衡。AUC 值为 0.92 表明模型区分类别的能力很强。
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{feature_importance.png}
+\caption{特征重要性}
+\end{figure}
+
+特征重要性图反映了各输入变量对模型预测的贡献程度。得分较高的特征对最终分类结果影响最大。
+
+\switchcolumn*
+
+
+\section{Выводы}
+\pcsync
+Проведённый анализ подтвердил, что AutoML-фреймворк \texttt{FLAML} способен эффективно решать задачу классификации ЭКГ-записей с высокой точностью (AUC 0.92). Использование автоматизированных подходов сокращает время настройки модели и повышает воспроизводимость результатов.
+
+\switchcolumn
+
+\section{结论}
+\pcsync
+实验结果表明，\texttt{FLAML} 框架可以有效地完成心电图分类任务，AUC 值高达 0.92，表明模型具有很强的判别能力。自动机器学习显著简化了建模流程，提高了结果的稳定性与效率。
+\switchcolumn*
+\newpage
+
+
+
+\section{Ссылки на литературу}
+\pcsync
+\renewcommand{\refname}{}
+\begin{thebibliography}{9}
+\bibitem{logreg1}
+\textit{Набор данных для лабораторных работы и исследований}. 2025. URL: \url{https://github.com/AI-is-out-there/data2lab} (Дата обращения: 16.03.2025)
+
+\bibitem{logreg2}
+\textit{FLAML: A Fast Library for AutoML}. 2025. URL: \url{https://github.com/microsoft/FLAML} (Дата обращения: 06.05.2025)
+\end{thebibliography}
+
+\vfill\null  % <-- This pushes content down to match Chinese side, optional
+
+\switchcolumn
+
+\newpage
+\section{参考文献}
+\pcsync
+\renewcommand{\refname}{}
+\begin{thebibliography}{9}
+\bibitem{logreg1}
+AI-is-out-there. 心脏数据集 [EB/OL]. (2025-03-16) [2025-05-06]. \url{https://github.com/AI-is-out-there/data2lab}
+
+\bibitem{logreg2}
+Microsoft. FLAML 自动机器学习库 [EB/OL]. (2025-05-06) [2025-05-06]. \url{https://github.com/microsoft/FLAML}
+\end{thebibliography}
+
+\vfill\null  % Optional: ensures vertical sync with Russian side
+
+\switchcolumn*
+
+
+\end{paracol}
+\balance
+\end{document}

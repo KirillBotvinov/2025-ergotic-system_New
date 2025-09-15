@@ -1,0 +1,389 @@
+%% 点击左上角菜单，将编译器选择为XeLaTeX
+%% Нажмите на меню в левом верхнем углу и выберите компилятор XeLaTeX
+
+\documentclass{article}
+\usepackage[a4paper, margin=1.5cm]{geometry}
+\usepackage[russian,english]{babel}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\setmainfont{Times New Roman}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=blue}
+\usepackage{float}
+\usepackage{ctex}
+\usepackage{paracol}
+\makeatletter
+\providecommand{\pcsync}{\par\vspace{\baselineskip}}
+\makeatother
+\usepackage[backend=biber, style=ieee]{biblatex}
+\usepackage{balance}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+% \title{Отчёт}
+\title{Отчёт  \ \large 报告}
+\author{Исса Мохаммад \ 伊萨·穆罕默德}
+\date{13 мая 2025 г. \ 2025年5月13日}
+
+\begin{document}
+\maketitle
+
+\begin{paracol}{2}
+\setcolumnwidth{0.47\textwidth,0.47\textwidth}
+\setlength{\columnsep}{20pt}
+\setlength{\emergencystretch}{3em}
+
+\section{Введение}
+\pcsync
+Электрокардиография (ЭКГ) — это широко используемый метод диагностики сердечных заболеваний. Автоматическая классификация ЭКГ-сигналов может значительно повысить эффективность клинической диагностики. В рамках данной работы мы исследуем характеристики ЭКГ-сигналов и применяем методы глубинного обучения, в частности сети с долгой краткосрочной памятью (LSTM) и механизмом внимания, для классификации сердечных сокращений в соответствии со стандартом, рекомендованным AAMI.
+
+Модель обучается и тестируется на базе MIT-BIH Arrhythmia Database. Этот набор данных включает 48 получасовых фрагментов двухканальных амбулаторных ЭКГ-записей. Аннотации сердечных сокращений приведены к пяти основным категориям согласно стандарту AAMI:
+
+\begin{itemize}
+    \item \textbf{N:} Нормальные сокращения
+    \item \textbf{S:} Суправентрикулярные экстрасистолы
+    \item \textbf{V:} Желудочковые экстрасистолы
+    \item \textbf{F:} Слияние нормальных и желудочковых сокращений
+    \item \textbf{Q:} Неизвестные или прочие
+\end{itemize}
+
+\switchcolumn
+
+\section{引言}
+\pcsync
+心电图（ECG）是一种广泛用于诊断心脏疾病的技术。自动化的ECG信号分类可以提高临床诊断的效率。本研究旨在分析ECG信号特征，并应用深度学习方法，特别是带注意力机制的长短期记忆网络（LSTM），依据AAMI推荐标准对心搏进行分类。
+
+该模型在MIT-BIH心律失常数据库上进行训练和测试。该数据库包含48段每段30分钟的双通道动态ECG记录。根据AAMI标准，心搏注释被映射为五个主要类别：
+
+\begin{itemize}
+    \item \textbf{N：} 正常心搏
+    \item \textbf{S：} 室上性异位心搏
+    \item \textbf{V：} 室性异位心搏
+    \item \textbf{F：} 正常与室性心搏融合
+    \item \textbf{Q：} 未知或其他
+\end{itemize}
+
+\switchcolumn*
+
+
+\section{Предобработка данных}
+\pcsync
+\begin{itemize}
+    \item \textbf{Выделение сердечных сокращений:} ЭКГ-сигналы сегментируются по сокращениям с использованием аннотаций R-пиков из PhysioNet.
+    \item \textbf{Длина сигнала:} Каждое сокращение дополняется или обрезается до 300 отсчетов.
+    \item \textbf{Преобразование меток:} Символы сокращений преобразуются в классы AAMI.
+    \item \textbf{Нормализация:} Все сегменты нормализуются с использованием z-преобразования.
+\end{itemize}
+
+Датасет является сильно несбалансированным: класс ``N'' составляет более 80\% всех сокращений.
+
+\pcsync
+Примечание: Из-за ограниченных ресурсов моего компьютера я использовал только записи с 100 по 180.
+
+\switchcolumn
+
+\section{数据预处理}
+\pcsync
+\begin{itemize}
+    \item \textbf{心搏提取：} 使用PhysioNet中的R峰注释将ECG信号按心搏分段。
+    \item \textbf{信号长度：} 每个心搏被填充或截断为300个采样点。
+    \item \textbf{标签映射：} 心搏符号被映射为AAMI分类标准中的类别。
+    \item \textbf{归一化：} 所有心搏段使用z-score标准化。
+\end{itemize}
+
+该数据集严重不平衡，其中“N”类占所有心搏的80%以上。
+\pcsync
+备注: 由于我的计算机资源有限，我仅使用了第100到第180号的记录。
+
+\switchcolumn*
+
+
+
+\section{Архитектура модели}
+\pcsync
+Нейронная сеть включает в себя следующие компоненты:
+\begin{itemize}
+    \item LSTM-слой с 64 единицами
+    \item Слой мягкого внимания (Dense + Multiply)
+    \item Второй LSTM-слой с 32 единицами
+    \item Выходной полносвязный слой с softmax-активацией на 5 классов
+\end{itemize}
+
+Общее количество обучаемых параметров: 33,637 \\
+Функция потерь: категориальная кросс-энтропия \\
+Оптимизатор: Adam
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{1.png}
+    \caption{Резюме модели}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{2.png}
+    \caption{Распределение классов}
+    \label{fig:enter-label}
+\end{figure}
+
+
+
+\switchcolumn
+
+\section{模型结构}
+\pcsync
+神经网络由以下部分组成：
+\begin{itemize}
+    \item 一个包含64个单元的LSTM层
+    \item 一个软注意力层（Dense + Multiply）
+    \item 一个包含32个单元的第二LSTM层
+    \item 一个具有5个节点的Dense softmax输出层
+\end{itemize}
+
+总可训练参数：33,637 \\
+损失函数：分类交叉熵（Categorical Crossentropy）\\
+优化器：Adam
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{1.png}
+    \caption{模型摘要}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{2.png}
+    \caption{班级分布}
+    \label{fig:enter-label}
+\end{figure}
+
+\switchcolumn*
+
+
+
+
+
+\section{Результаты обучения}
+\pcsync
+Модель обучалась в течение 10 эпох на 80\% выборки. Во время обучения использовалось 20\% данных для валидации. Были применены веса классов для балансировки тренировочного процесса.
+
+Несмотря на балансировку, точность модели остаётся нестабильной и низкой из-за несбалансированности классов и недообучения модели.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{3.png}
+    \caption{Обучение}
+    \label{fig:enter-label}
+\end{figure}
+
+\switchcolumn
+
+\section{训练结果}
+\pcsync
+该模型使用80\%的数据进行了10轮训练。在训练过程中使用了20\%的数据作为验证集。为了解决类别不平衡问题，训练中应用了类别权重。
+
+尽管进行了类别平衡处理，但由于类别严重不均衡和模型欠拟合，准确率仍然不稳定且偏低。
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{3.png}
+    \caption{训练}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\switchcolumn*
+
+
+
+
+
+
+
+
+\section{Оценка качества модели}
+\pcsync
+\textbf{Матрица ошибок:}
+
+Модель путает класс N с классами Q и S. Миноритарные классы, такие как F и S, предсказываются плохо.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{4.png}
+    \caption{Матрица ошибок}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{5.png}
+    \caption{Точность и потери}
+    \label{fig:enter-label}
+\end{figure}
+
+\textbf{Отчёт по классификации:}
+\begin{itemize}
+    \item Точность (Accuracy): 12\%
+    \item Macro F1-мера: 0.10 $\rightarrow$ плохая обобщающая способность по всем классам
+    \item Взвешенная F1-мера: 0.08 $\rightarrow$ отражает влияние несбалансированных данных
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{6.png}
+    \caption{Отчёт по классификации}
+    \label{fig:enter-label}
+\end{figure}
+
+\textbf{Визуализация t-SNE:}
+
+Латентные признаки, извлечённые из предпоследнего LSTM-слоя, не показывают чёткой кластеризации по классам, что указывает на слабую разделимость признаков.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{7.png}
+    \caption{Визуализация t-SNE}
+    \label{fig:enter-label}
+\end{figure}
+
+\switchcolumn
+
+\section{评估结果}
+\pcsync
+\textbf{混淆矩阵：}
+
+模型将N类与Q类和S类混淆。少数类（如F类和S类）的预测效果较差。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{4.png}
+    \caption{误差矩阵}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{5.png}
+    \caption{准确率和损失}
+    \label{fig:enter-label}
+\end{figure}
+
+\textbf{分类报告：}
+\begin{itemize}
+    \item 准确率（Accuracy）：12\%
+    \item Macro F1分数：0.10 $\rightarrow$ 各类别的泛化能力较差
+    \item 加权F1分数：0.08 $\rightarrow$ 反映了类别不平衡带来的偏差
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{6.png}
+    \caption{分类报告}
+    \label{fig:enter-label}
+\end{figure}
+
+\textbf{t-SNE可视化：}
+
+从倒数第二个LSTM层提取的潜在特征未表现出明显的类内聚集性，说明模型难以有效区分不同类别。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{7.png}
+    \caption{t-SNE可视化}
+    \label{fig:enter-label}
+\end{figure}
+
+\switchcolumn*
+
+
+
+\section{Заключение}
+\pcsync
+Текущая реализация LSTM с механизмом мягкого внимания демонстрирует ограничения при решении задачи классификации ЭКГ-сигналов с сильным дисбалансом классов. Хотя внимание теоретически должно улучшать результаты за счёт акцента на значимых временных отрезках, доминирование класса ``N'' приводит к плохому обучению модели на редких классах.
+
+\textbf{Рекомендации по улучшению:}
+\begin{itemize}
+    \item Применить увеличение данных или oversampling для редких классов
+    \item Ввести dropout и регуляризацию в LSTM-слои
+    \item Использовать более сложные механизмы внимания (например, Bahdanau attention)
+    \item Увеличить число эпох до 30+ с применением ранней остановки (early stopping)
+    \item Предобработать интервалы R-R или использовать многоканальные ЭКГ-входы
+\end{itemize}
+
+Несмотря на неидеальные результаты, предложенный рабочий процесс демонстрирует полноценный пайплайн от предобработки данных до оценки нейросетевой модели и может служить прочной основой для последующих улучшений.
+
+\switchcolumn
+
+\section{结论}
+\pcsync
+目前实现的带软注意力机制的LSTM在处理高度不平衡的ECG分类任务中表现出一定的局限性。虽然注意力机制在理论上能够通过强调关键时间步提升性能，但由于“N”类的主导地位，模型在稀有类别上的学习效果较差。
+
+\textbf{改进建议：}
+\begin{itemize}
+    \item 对少数类使用数据增强或过采样
+    \item 在LSTM层中引入dropout和正则化
+    \item 应用更高级的注意力机制（如Bahdanau注意力）
+    \item 将训练扩展至30轮以上，并采用早停策略
+    \item 对R-R间期进行预处理，或使用多通道ECG输入
+\end{itemize}
+
+尽管当前结果并不理想，但该流程展示了从数据预处理到神经网络评估的完整流程，为未来的改进提供了坚实的基线。
+
+\switchcolumn*
+
+
+
+
+
+
+\section{Ссылки на литературу}
+\pcsync
+\renewcommand{\refname}{}
+\begin{thebibliography}{9}
+
+\bibitem{logreg1}
+\textit{Набор данных для лабораторных работы и исследований}. 2025. URL: \url{https://github.com/AI-is-out-there/data2lab} (Дата обращения: 16.03.2025)
+
+
+\bibitem{biomedai_lstm}
+TAUforPython. \textit{Классификация ЭКГ с помощью LSTM нейросети} [Электронный ресурс]. 2023. URL: \url{https://github.com/TAUforPython/BioMedAI/blob/main/NN%20LSTM%20ECG%20classification.ipynb} (Дата обращения: 14.05.2025)
+
+\end{thebibliography}
+
+\vfill\null
+
+\switchcolumn
+
+\section{参考文献}
+\pcsync
+\renewcommand{\refname}{}
+\begin{thebibliography}{9}
+
+\bibitem{logreg1}
+AI-is-out-there. 心脏数据集 [EB/OL]. (2025-03-16) [2025-05-06]. \url{https://github.com/AI-is-out-there/data2lab}
+
+
+\bibitem{biomedai_lstm}
+TAUforPython. LSTM 神经网络用于ECG分类 [EB/OL]. (2023) [2025-05-14]. \url{https://github.com/TAUforPython/BioMedAI/blob/main/NN%20LSTM%20ECG%20classification.ipynb}
+
+\end{thebibliography}
+
+\vfill\null
+
+\switchcolumn*
+
+
+
+
+
+
+
+
+\end{paracol}
+\balance
+\end{document}

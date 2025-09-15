@@ -1,0 +1,297 @@
+%% 点击左上角菜单，将编译器选择为XeLaTeX
+%% Нажмите на меню в левом верхнем углу и выберите компилятор XeLaTeX
+
+\documentclass{article}
+\usepackage{underscore}
+\usepackage[russian,english]{babel}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\setmainfont{Times New Roman}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=blue}
+\usepackage{float} % For [H] placement
+\usepackage{ctex} % For Chinese support with XeLaTeX
+\usepackage{paracol} % For side-by-side columns
+\makeatletter
+\providecommand{\pcsync}{\par\vspace{\baselineskip}} % <--- 将 \basiskip 修改为 \baselineskip
+\makeatother
+\usepackage[backend=biber, style=ieee]{biblatex} % For bibliography
+% Add your bibliography file path here:
+% \addbibresource{your_references.bib} % <--- Add your .bib file path here
+
+\usepackage{balance} % To balance columns on the last page
+
+% Title formatting
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+
+% Document Title, Author, Date
+% \title{Отчёт}
+\title{Отчет по Заданию №4: Временно-частотная характеристика сигналов ЭЭГ эпилептических припадков на основе спектрограмм и непрерывного вейвлет-преобразования \\ \large 报告作业 4： 基于谱图与连续小波变换的癫痫发作 EEG 信号时频特性分析}
+
+% \author{}
+\author{Айдана Халихаз \\阿依达娜·哈力哈孜}
+
+% \date{06 апреля 2025 г.}
+\date{30 апреля 2025 г. \\ 2025年4月30日}
+
+\begin{document}
+\maketitle % Create the title page
+
+% Bibliography (Placeholder - add your references.bib file and uncomment \printbibliography)
+% You need to add \addbibresource{your_references.bib} above and run biber.
+% \printbibliography[heading=bibintoc] % Uncomment this line to include bibliography
+
+
+\begin{paracol}{2} % Start two-column layout
+\setcolumnwidth{0.47\textwidth,0.47\textwidth} % Set column widths
+\setlength{\columnsep}{20pt} % Set gap between columns
+\setlength{\emergencystretch}{3em} % Adjust for line breaking
+
+
+% Section 1: Objective (Russian side) - No changes needed based on images
+\section{Цель работы}
+\pcsync % Synchronize columns after the heading and vspace
+
+% User's Russian text for Objective
+Электроэнцефалография (ЭЭГ), отражающая общую электрическую активность нейронов в коре головного мозга путем регистрации разности потенциалов на поверхности скальпа, представляет собой незаменимый неинвазивный метод в клинической неврологии и фундаментальных исследованиях \cite{Niedermeyer2005}. В частности, ЭЭГ играет центральную роль в диагностике и изучении эпилепсии благодаря своей способности фиксировать характерные аномальные разряды во время припадков (иктальные), а также в межприступный период (интериктальные)\cite{Engel2008}.
+
+Сигнал ЭЭГ во время припадка обычно демонстрирует высокоамплитудные, ритмически синхронизированные разряды, частота и морфология которых может изменяться со временем, демонстрируя типичные нестационарные характеристики \cite{Jiruska2013}. Традиционная интерпретация ЭЭГ основывается на визуальном осмотре опытными врачами, что занимает много времени и потенциально субъективно. Поэтому разработка объективных и количественных методов анализа ЭЭГ имеет решающее значение для повышения эффективности диагностики и более глубокого понимания патофизиологических механизмов эпилепсии.
+
+Временно-частотный анализ (ВЧА) - это метод, который может одновременно характеризовать распределение энергии сигнала во временном и частотном измерениях, и особенно подходит для анализа нестационарных сигналов, таких как ЭЭГ \cite{Cohen1995}. В частности, короткопериодное преобразование Фурье (STFT) и его результат визуализации, спектрограмма, предоставляют спектральную информацию во времени путем оконтуривания сигнала. Однако временное и частотное разрешение STFT ограничено принципом неопределенности Гейзенберга, и для всех частотных компонент используется фиксированное разрешение. Непрерывное вейвлет-преобразование (CWT), с другой стороны, использует вейвлет-базисные функции с переменным разрешением по времени и частоте, что обеспечивает высокое частотное разрешение на низких частотах и высокое временное разрешение на высоких частотах, и лучше подходит для захвата переходных событий и частотных вариаций в сигналах ЭЭГ \cite{Torrence1998}.
+
+Целью данного исследования было применение STFT и CWT для частотно-временного анализа сегмента общедоступных данных ЭЭГ, содержащего эпилептические припадки. Задачами исследования являются (1) предварительная обработка исходного многоканального ЭЭГ-сигнала, (2) построение спектрограмм и масштабных карт предварительно обработанного сигнала и (3) выявление характерных паттернов эпилептических припадков путем сравнения частотно-временных представлений периодов припадков и периодов без припадков. Для анализа мы выбрали записи ЭЭГ из базы данных CHB-MIT \cite{Shoeb2009}.
+
+\switchcolumn % switch to right column
+
+% Section 1: Objective (Chinese side) - No changes needed based on images
+\section{目标}
+\pcsync % Synchronize columns after the heading and vspace
+
+% User's Chinese text for Objective
+脑电图 (Electroencephalography, EEG) 通过记录头皮表面的电位差，反映大脑皮层神经元的总体电活动，是临床神经科学和基础研究中不可或缺的非侵入性技术 \cite{Niedermeyer2005}。特别是在癫痫的诊断和研究中，EEG 扮演着核心角色，因为它能够捕捉到癫痫发作（Ictal）期间以及发作间期（Interictal）的特征性异常放电 \cite{Engel2008}。
+
+癫痫发作期间的 EEG 信号通常表现为高幅度的、节律性的同步化放电，其频率和形态可能随时间演变，呈现出典型的非平稳特性 \cite{Jiruska2013}。传统的 EEG 判读依赖于经验丰富的医师进行目视检查，这不仅耗时，且可能存在主观性。因此，开发客观、定量的 EEG 分析方法对于提高诊断效率和深入理解癫痫病理生理机制至关重要。
+
+时频分析 (Time-Frequency Analysis) 技术能够在时间和频率两个维度上同时表征信号的能量分布，特别适用于分析 EEG 这类非平稳信号 \cite{Cohen1995}。其中，短时傅里叶变换 (Short-Time Fourier Transform, STFT) 及其可视化结果谱图 (Spectrogram)，通过对信号进行加窗处理，提供了随时间变化的频谱信息。然而，STFT 的时间和频率分辨率受到海森堡不确定性原理的限制，且对于所有频率分量采用固定的分辨率。连续小波变换 (Continuous Wavelet Transform, CWT) 则采用具有可变时间-频率分辨率的小波基函数，能够在低频处提供高频率分辨率，在高频处提供高时间分辨率，更适合捕捉 EEG 信号中的瞬态事件和频率变化 \cite{Torrence1998}。
+
+本研究旨在应用 STFT 和 CWT 对一段包含癫痫发作的公开 EEG 数据进行时频分析。具体目标是：(1) 对原始多通道 EEG 信号进行预处理；(2) 计算预处理后信号的谱图和尺度图；(3) 通过比较发作期与非发作期的时频表征，识别癫痫发作的特征性模式。我们选用来自 CHB-MIT 数据库 \cite{Shoeb2009} 的 EEG 记录进行实例分析。
+\switchcolumn* % switch back to left column for next section
+
+% Section 2: Materials and Methods (Russian side) - Updated details based on final code and outputs
+\section{Материалы и методы}
+\pcsync
+
+\subsection{Сбор данных} % Subsection
+Данные, использованные в данном исследовании, получены из открытой базы данных ЭЭГ кожи головы CHB-MIT, доступной через платформу Zenodo (ID: 2547147) \cite{Shoeb2009}. Для анализа был выбран файл \texttt{eeg1.edf}. Согласно файлу аннотаций (\texttt{chb01-summary.txt}), прилагаемому к этому набору данных, запись содержит один эпилептический приступ, начавшийся в $t_{start} = 2996$ секунд и закончившийся в $t_{end} = 3036$ секунд. Этот файл EDF включает $N_{channels} = 21$ ЭЭГ-канал с частотой дискретизации сигнала $f_s = 256$ Гц. % Corrected channel count based on Cell 2 output.
+
+\subsection{Предварительная обработка данных} % Subsection
+
+Для упрощения анализа, извлечения глобальных характеристик сигнала и снижения уровня шума были выполнены следующие шаги предварительной обработки:
+
+\begin{itemize}
+\item \textbf{Усреднение каналов:} Сигналы со всех 21 ЭЭГ-канала были усреднены арифметически в каждой точке дискретизации, что позволило получить одноканальный усредненный сигнал $x_{avg}(n)$. Этот шаг направлен на улавливание общих тенденций изменения активности мозга, но может маскировать локализованные источники эпилептической активности.
+\[ x_{avg}(n) = \frac{1}{N_{channels}} \sum_{i=1}^{N_{channels}} x_i(n) \]
+Где $x_i(n)$ — значение дискретизации $i$-го канала в момент времени $n$.
+
+ \item \textbf{Фильтрация:} Для удаления высокочастотного шума и помех от сети электропитания к усредненному сигналу $x_{avg}(n)$ был применен **режективный фильтр (notch-фильтр)** на частоте **50 Гц** для подавления специфической помехи электросети, обнаруженной в данном файле, а затем применен **Баттервортский фильтр нижних частот 4-го порядка** с частотой среза $f_{cutoff} = 60$ Гц. Фильтрация была выполнена с помощью методов библиотеки \texttt{mne} (\texttt{raw.notch_filter}, \texttt{raw.filter}), которые обеспечивают нулевую фазовую дисторсию. Отфильтрованный сигнал обозначен как $x_{filt}(n)$. % Updated filtering description to explicitly mention 50Hz notch filter and MNE methods.
+\end{itemize}
+
+\subsection{Методы частотно-временного анализа} % Subsection
+
+К предварительно обработанному сигналу $x_{filt}(n)$ были применены следующие два метода частотно-временного анализа:
+
+\begin{itemize}
+ \item \textbf{Спектрограмма с использованием КВПФ:}
+ Для расчета спектрограммы сигнала использовалась функция \texttt{scipy.signal.spectrogram} (или ее реализация в \texttt{matplotlib.pyplot.specgram}, как в стиле эталона). Кратковременное преобразование Фурье (КВПФ) разбивает сигнал $x_{filt}(n)$ на перекрывающиеся короткие сегменты, к каждому сегменту применяется оконная функция (по умолчанию окно Хэмминга) и вычисляется преобразование Фурье. В данном исследовании длина окна была установлена на **512 точек** (соответствует 2 секундам при 256 Гц), а перекрытие соседних окон составляло **75% (400 точек)**. Полученным результатом является плотность спектральной мощности (ПСП) сигнала $P(t, f)$, представляющая энергетическую плотность вблизи времени $t$ на частоте $f$. Результаты визуализированы в единицах дБ/Гц. % Updated spectrogram parameters based on Cell 6 code (nperseg=512, noverlap=400). Mentioned plt.specgram style.
+
+    \item \textbf{Скалограмма с использованием НПВ:}
+    Для расчета непрерывного вейвлет-преобразования сигнала использовалась функция \texttt{pywt.cwt}. В качестве материнского вейвлета $\psi(t)$ был выбран комплексный вейвлет Морле (\texttt{cmor1.5-1.0}). Был выбран ряд масштабов $s$ (соответствующих диапазону псевдочастот от **1 Гц до 50 Гц**, всего 100 логарифмически распределенных точек частоты), вычислены вейвлет-коэффициенты $C(s, \tau)$:
+    \[ C(s, \tau) = \int_{-\infty}^{\infty} x_{filt}(t) \frac{1}{\sqrt{s}} \psi^*\left(\frac{t-\tau}{s}\right) dt \]
+    Где $\tau$ — сдвиг по времени, $s$ — параметр масштаба, а $\psi^*$ — комплексно сопряженный материнский вейвлет. Скалограмма визуализирует модуль вейвлет-коэффициентов $|C(s, \tau)|$, отражая распределение энергии сигнала по времени и масштабу (частоте). В данном исследовании вертикальная ось скалограммы представляет псевдочастоту. % Updated CWT frequency range (1-50Hz) based on Cell 7, removed mention of log scale on Y axis as final plot was linear.
+\end{itemize}
+
+\switchcolumn
+
+% Section 2: Materials and Methods (Chinese side) - Updated details based on final code and outputs
+\section{材料与方法}
+\pcsync
+
+\subsection{数据采集} % Subsection
+本研究使用的数据来源于公开的 CHB-MIT 头皮脑电数据库，该数据库通过 Zenodo 平台 (ID: 2547147) \cite{Shoeb2009} 提供。选取了其中的文件 \texttt{eeg1.edf} 进行分析。根据该数据集提供的注释文件 (\texttt{chb01-summary.txt})，该记录包含一次癫痫发作，起始时间为 $t_{start} = 2996$ 秒，结束时间为 $t_{end} = 3036$ 秒。该 EDF 文件包含 $N_{channels} = 21$ 个 EEG 通道，信号的采样频率 $f_s = 256$ Hz。% Corrected channel count.
+
+\subsection{数据预处理} % Subsection
+
+为简化分析并获取全局信号特征，同时减少噪声干扰，执行了以下预处理步骤：
+
+\begin{itemize}
+ \item \textbf{通道平均：} 将所有 21 个 EEG 通道的信号在每个采样点上计算算术平均值，生成一个单通道的平均信号 $x_{avg}(n)$。此步骤旨在捕捉大脑活动的整体变化趋势，但可能忽略局部化的癫痫活动源。
+ \[ x_{avg}(n) = \frac{1}{N_{channels}} \sum_{i=1}^{N_{channels}} x_i(n) \]
+ 其中 $x_i(n)$ 是第 $i$ 个通道在时间点 $n$ 的采样值。
+
+\item \textbf{滤波：} 为了去除高频噪声和潜在的工频干扰，对平均信号 $x_{avg}(n)$ 应用了**陷波滤波器**，将频率设置为**50 Hz**以抑制该文件中发现的特定电力线干扰，随后应用了一个 $4$ 阶巴特沃斯 (Butterworth) **低通滤波器**，其截止频率 $f_{cutoff}$ 设置为 60 Hz。滤波操作通过 \texttt{mne} 库方法（\texttt{raw.notch_filter}, \texttt{raw.filter}）完成，它们实现零相位失真。滤波后的信号记为 $x_{filt}(n)$。% Updated filtering description to explicitly mention 50Hz notch filter and MNE methods.
+\end{itemize}
+
+\subsection{时频分析方法} % Subsection
+
+对预处理后的信号 $x_{filt}(n)$ 应用以下两种时频分析技术：
+
+\begin{itemize}
+ \item \textbf{谱图 (Spectrogram) via STFT：}
+采用 \texttt{scipy.signal.spectrogram} 函数（或采用类似 эталон 的 \texttt{matplotlib.pyplot.specgram} 风格进行绘图）计算信号的谱图。STFT 将信号 $x_{filt}(n)$ 分割成多个重叠的短时段，对每个时段应用窗函数（默认为汉明窗）并计算傅里叶变换。本研究中，窗口长度设置为 **512 个样本点**（约合 2 秒），相邻窗口的重叠率设置为 **75\% (400 个点)**。计算得到的结果是信号的功率谱密度 (PSD) $P(t, f)$，表示在时间 $t$ 附近、频率 $f$ 处的能量密度。结果以 dB/Hz 为单位进行可视化。 % Updated spectrogram parameters based on Cell 6 code (nperseg=512, noverlap=400). Mentioned plt.specgram style.
+
+    \item \textbf{尺度图 (Scalogram) via CWT：}
+    采用 \texttt{pywt.cwt} 函数计算信号的连续小波变换。选用复 Morlet 小波 (\texttt{cmor1.5-1.0}) 作为母小波 $\psi(t)$。选择一系列尺度 $s$（对应于 **1 Hz 到 50 Hz** 的伪频率范围，共 100 个对数间隔的频率点），计算小波系数 $C(s, \tau)$:
+    \[ C(s, \tau) = \int_{-\infty}^{\infty} x_{filt}(t) \frac{1}{\sqrt{s}} \psi^*\left(\frac{t-\tau}{s}\right) dt \]
+    其中 $\tau$ 是时间平移，$s$ 是尺度参数，$\psi^*$ 是母小波的复共轭。尺度图可视化的是小波系数的模 $|C(s, \tau)|$，反映了信号能量在时间和尺度（频率）上的分布。本研究中，尺度图的纵轴表示伪频率。 % Updated CWT frequency range (1-50Hz) based on Cell 7, removed mention of log scale on Y axis as final plot was linear.
+\end{itemize}
+\switchcolumn* % switch back to left column
+
+% Section 3: Results (Russian side) - Updated with figure paths and captions
+\section{Результаты}
+\pcsync
+
+В данном разделе представлены результаты частотно-временного анализа предварительно обработанного усредненного ЭЭГ-сигнала в выбранном интервале времени, охватывающем эпилептический приступ.
+
+\begin{itemize}
+ \item \textbf{Исходные ЭЭГ-сигналы во время эпилептического приступа:}
+ Рисунок \ref{fig:raw_eeg} демонстрирует формы волн для выбранных исходных ЭЭГ-каналов во время эпилептического приступа. На этом графике видно, что по сравнению с фоновой активностью, сигналы во время приступа демонстрируют выраженную высокоамплитудную, ритмическую разрядную активность.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{Raw_EEG_Plot.png} % **Placeholder - Replace with the actual filename generated by Cell 3 output (Raw EEG plot)**
+ \caption{Формы волн для выбранных исходных ЭЭГ-каналов во время эпилептического приступа (примерная длительность: 2996с - 3036с)} % Updated caption
+ \label{fig:raw_eeg} % Unique label
+\end{figure}
+
+ \item \textbf{Сравнение плотности спектральной мощности до и после фильтрации:}
+ Рисунок \ref{fig:psd} показывает усредненную плотность спектральной мощности (ПСП) исходного и отфильтрованного сигналов. График ясно демонстрирует наличие выраженного пика на частоте 50 Гц в исходном сигнале, который **практически полностью подавлен** после применения режективного фильтра на 50 Гц и фильтра нижних частот с частотой среза 60 Гц.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{image_fe0a94.png} % **Actual filename from Cell 5 output (PSD plot)**
+ \caption{Сравнение усредненной плотности спектральной мощности (ПСП) исходных и отфильтрованных ЭЭГ-сигналов} % Updated caption
+ \label{fig:psd} % Unique label
+\end{figure}
+
+ \item \textbf{Результаты анализа с помощью спектрограммы:}
+ Рисунок \ref{fig:spectrogram} показывает спектрограмму усредненного сигнала после предварительной обработки. Цвет на графике соответствует плотности спектральной мощности (дБ/Гц). **Важно отметить, что после применения фильтров, вертикальные полосы на частоте 50 Гц, наблюдавшиеся в нефильтрованных данных, практически полностью исчезли.** Четко видно, что в интервале времени эпилептического приступа энергия в определенных частотных диапазонах (в основном сосредоточенных в низкочастотном диапазоне) значительно выше базового уровня.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{image_fe0b15.png} % **Actual filename from Cell 6 output (Spectrogram)**
+ \caption{Спектрограмма отфильтрованного усредненного сигнала} % Updated caption
+ \label{fig:spectrogram} % Unique label
+\end{figure}
+
+ \item \textbf{Результаты анализа с помощью скалограммы:}
+ Рисунок \ref{fig:scalogram} демонстрирует скалограмму сигнала, рассчитанную с использованием комплексного вейвлета Морле. Цвет на графике соответствует амплитуде вейвлет-коэффициентов. Как и в случае со спектрограммой, в интервале времени эпилептического приступа скалограмма также показывает выраженную концентрацию энергии в низкочастотной области. Эффект края, который может проявляться по бокам графика, уменьшен за счет увеличения анализируемого временного интервала в расчетах.
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{image_fe82f8.png} % **Actual filename from Cell 7 output (Scalogram)**
+ \caption{Скалограмма (вейвлет-преобразование) отфильтрованного усредненного сигнала} % Updated caption
+ \label{fig:scalogram} % Unique label
+\end{figure}
+\end{itemize}
+
+\switchcolumn
+
+% Section 3: Results (Chinese side) - Updated with figure paths and captions
+\section{结果}
+\pcsync
+
+本节展示了对预处理后的平均 EEG 信号在选定时间区间（包含癫痫发作）进行时频分析的结果。
+
+\begin{itemize}
+ \item \textbf{癫痫发作期原始 EEG 波形：}
+ 图 \ref{fig:raw_eeg} 展示了癫痫发作期间部分原始 EEG 通道的波形图。从图中可以看出，相较于背景活动，发作期信号呈现出显著的高幅、节律性放电模式。
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{Raw_EEG_Plot.png} % **Placeholder - Replace with the actual filename generated by Cell 3 output (Raw EEG plot)**
+ \caption{癫痫发作期间部分原始 EEG 通道的波形图（大约时间：2996s - 3036s）} % Updated caption
+ \label{fig:raw_eeg} % Unique label (same as Russian side)
+\end{figure}
+
+ \item \textbf{滤波前后的功率谱密度对比：}
+ 图 \ref{fig:psd} 显示了原始和滤波后平均信号的功率谱密度（PSD）对比。图中清晰地显示了原始信号在 50 Hz 处存在一个明显的尖峰，而在应用 50 Hz 陷波滤波器和 60 Hz 低通滤波器后，该尖峰已**基本完全抑制**。
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=0.9\linewidth]{image_fe0a94.png} % **Actual filename from Cell 5 output (PSD plot)**
+ \caption{原始与滤波后平均 EEG 信号的功率谱密度 (PSD) 对比} % Updated caption
+    \label{fig:psd} % Unique label (same as Russian side)
+\end{figure}
+
+    \item \textbf{谱图分析结果：}
+    图 \ref{fig:spectrogram} 显示了预处理后平均信号的谱图。图中颜色代表功率谱密度（dB/Hz）。**值得注意的是，在应用滤波器后，在未滤波数据中观察到的 50 Hz 垂直条纹已基本消失。** 在癫痫发作时间区间内，特定频率范围的能量显著高于发作前后的基线水平。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{image_fe0b15.png} % **Actual filename from Cell 6 output (Spectrogram)**
+    \caption{滤波后平均信号的谱图} % Updated caption
+    \label{fig:spectrogram} % Unique label (same as Russian side)
+\end{figure}
+
+    \item \textbf{尺度图分析结果：}
+    图 \ref{fig:scalogram} 展示了使用复 Morlet 小波计算得到的信号尺度图。图中颜色代表小波系数的幅度。与谱图结果一致，在癫痫发作时段内，尺度图同样显示了在低频区域能量的显著集中。通过在计算中增加分析的时间区间，减少了图中可能出现的边缘效应。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{image_fe82f8.png} % **Actual filename from Cell 7 output (Scalogram)**
+    \caption{滤波后平均信号的尺度图（小波变换结果）} % Updated caption
+    \label{fig:scalogram} % Unique label (same as Russian side)
+\end{figure}
+\end{itemize}
+\switchcolumn* % switch back to left column for next section
+
+
+% Section 4: Discussion (Russian side) - No changes needed based on images, already updated based on findings
+\section{Обсуждение}
+\pcsync
+
+% User's Russian text for Discussion
+В данном исследовании успешно применены две методики частотно-временного анализа – спектрограмма и непрерывное вейвлет-преобразование – для анализа ЭЭГ-сигналов, содержащих эпилептический приступ. Результаты согласованно показывают, что во время эпилептического приступа энергия электрической активности мозга значительно усиливается в определенных частотных диапазонах (особенно в низкочастотном диапазоне), что соответствует патофизиологическому механизму эпилепсии, при котором большое количество нейронов проявляет гиперсинхронную разрядную активность \cite{Jiruska2013}.
+
+Сравнивая оба метода, КВПФ (спектрограмма) предоставляет интуитивно понятное и относительно вычислительно эффективное частотно-временное представление, способное четко отражать изменения распределения основной энергии с течением времени. НПВ (скалограмма), благодаря своему свойству многоразрешимости, теоретически лучше подходит для захвата переходных характеристик и деталей эволюции частоты в ЭЭГ-сигналах \cite{Torrence1998}. В данном случае оба метода эффективно выявили частотно-временные характеристики эпилептического приступа, но НПВ потенциально обладает преимуществом в выявлении тонкой динамической структуры приступа, например, в более точном определении моментов начала и окончания приступа или частотного дрейфа. Однако вычислительная сложность НПВ, как правило, выше, чем у КВПФ, и его результаты более чувствительны к выбору материнского вейвлета.
+
+Данное исследование имеет некоторые ограничения. Во-первых, анализ основан только на одном приступе у одного пациента, и универсальность результатов требует подтверждения на большем объеме данных. Во-вторых, хотя использование предварительной обработки методом усреднения каналов упростило анализ, оно могло скрыть информацию о пространственном происхождении и распространении эпилептической активности. Будущие исследования могут рассмотреть анализ отдельных каналов或применение методов локализации источника. Кроме того, детали результатов частотно-временного анализа зависят от выбора параметров (таких как длина окна для КВПФ, тип материнского вейвлета для НПВ), и оптимальные параметры могут варьироваться в зависимости от конкретных целей исследования и характеристик данных.
+
+Будущая работа может быть расширена для анализа данных по большему количеству типов эпилептических приступов и пациентов, а также для систематического сравнения эффективности различных методов частотно-временного анализа и настроек параметров. В сочетании с алгоритмами машинного обучения, использование признаков, извлеченных из спектрограмм или скалограмм, обещает разработку более надежных и автоматизированных систем обнаружения и прогнозирования эпилепсии \cite{Boashash2015}.
+
+\switchcolumn % switch to right column
+
+% Section 4: Discussion (Chinese side) - No changes needed based on images, already updated based on findings
+\section{讨论}
+\pcsync
+
+% User's Chinese text for Discussion
+本研究成功应用谱图和连续小波变换两种时频分析技术，对包含癫痫发作的 EEG 信号进行了分析。结果一致表明，在癫痫发作期间，大脑电活动的能量在特定频率（尤其是低频段）显著增强，这与癫痫发作时大量神经元发生超同步放电的病理生理机制相吻合 \cite{Jiruska2013}。
+
+比较两种方法，STFT（谱图）提供了一种直观且计算相对高效的时频表示，能够清晰地反映主要能量分布随时间的变化。CWT（尺度图）则凭借其多分辨率特性，理论上更适合捕捉 EEG 信号中的瞬态特征和频率演变细节 \cite{Torrence1998}。在本例中，两种方法都有效地识别了癫痫发作的时频特征，但 CWT 可能在揭示发作的精细动态结构方面具有潜在优势，例如更精确地定位发作的起止时刻或频率漂移。然而，CWT 的计算复杂度通常高于 STFT，且其结果对母小波的选择较为敏感。
+
+本研究存在一些局限性。首先，分析仅基于单个病人的单次发作事件，结果的普适性有待更多数据验证。其次，采用通道平均的预处理方法虽然简化了分析，但可能掩盖了癫痫活动的空间起源和传播信息。未来的研究可以考虑分析单个通道或采用源定位技术。此外，时频分析结果的细节依赖于参数选择（如 STFT 的窗口长度、CWT 的母小波类型），最优参数可能因具体研究目标和数据特性而异。
+
+未来的工作可以扩展到分析更多癫痫发作类型和更多病人的数据，系统比较不同时频分析方法和参数设置的效果。结合机器学习算法，利用从谱图或尺度图中提取的特征，有望开发更鲁棒、自动化的癫痫检测和预测系统 \cite{Boashash2015}。
+\switchcolumn* % switch back to left column
+
+% Section 5: Conclusion (Russian side) - No changes needed based on images
+\section{Заключение}
+\pcsync
+
+% User's Russian text for Conclusion
+В данном исследовании, путем предварительной обработки сегмента открытых данных ЭЭГ, содержащего эпилептический приступ, включающей усреднение каналов и низкочастотную фильтрацию, и применения частотно-временного анализа с использованием кратковременного преобразования Фурье (спектрограмма) и непрерывного вейвлет-преобразования (скалограмма), успешно визуализированы характерные изменения энергии сигнала во время эпилептического приступа во временной и частотной областях. Результаты четко демонстрируют значительное усиление энергии в определенных частотных диапазонах (особенно в низкочастотном) во время приступа. Это подтверждает эффективность методов частотно-временного анализа как инструмента для исследования динамических характеристик ЭЭГ-сигналов при эпилепсии, предоставляя важную количественную основу для понимания механизмов эпилепсии и разработки вспомогательных диагностических технологий.
+
+\switchcolumn % switch to right column
+
+% Section 5: Conclusion (Chinese side) - No changes needed based on images
+\section{结论}
+\pcsync
+
+% User's Chinese text for Conclusion
+本研究通过对一段包含癫痫发作的公开 EEG 数据进行通道平均、低通滤波等预处理，并应用短时傅里叶变换（谱图）和连续小波变换（尺度图）进行时频分析，成功地可视化了癫痫发作期间信号能量在时间和频率域的特征性变化。结果清晰地显示了发作期特定频段（尤其是低频）能量的显著增强。这证实了时频分析技术作为研究癫痫 EEG 信号动态特性的有效工具，为理解癫痫机制和开发辅助诊断技术提供了重要的量化依据。
+\switchcolumn* % End the last section, return to left column if needed
+
+\end{paracol} % End two-column layout
+
+% Balance columns on the last page if using paracol
+\balance % This command is already in the user's input
+
+% Add bibliography (uncomment if you have a .bib file and added \addbibresource)
+% \printbibliography
+
+\end{document} % End the document

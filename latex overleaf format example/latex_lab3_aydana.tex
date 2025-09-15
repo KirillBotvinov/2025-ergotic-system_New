@@ -1,0 +1,184 @@
+%% 点击左上角菜单，将编译器选择为XeLaTeX
+%% Нажмите на меню в левом верхнем углу и выберите компилятор XeLaTeX
+
+\documentclass{article}
+\usepackage{underscore}
+\usepackage[russian,english]{babel}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\setmainfont{Times New Roman}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=blue}
+\usepackage{float}
+\usepackage{ctex}
+\usepackage{paracol}
+\makeatletter
+\providecommand{\pcsync}{\par\vspace{\baselineskip}}
+\makeatother
+\usepackage[backend=biber, style=ieee]{biblatex}
+\usepackage{balance}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+% \title{Отчёт}
+\title{Отчет по Заданию №3: Классификация данных ЭКГ с использованием AutoML  \\ \large 关于任务3的报告：使用AutoML进行心电图数据分类}
+% \author{}
+\author{Айдана Халихаз \\ 阿依达娜·哈力哈孜}
+% \date{06 апреля 2025 г.}
+\date{30 апреля 2025 г. \\ 2025年4月30日}
+
+\begin{document}
+\maketitle
+
+\begin{paracol}{2}
+\setcolumnwidth{0.47\textwidth,0.47\textwidth}
+\setlength{\columnsep}{20pt}
+\setlength{\emergencystretch}{3em}
+
+\section{Цель работы}
+\pcsync
+Целью данного задания является обработка кардиологического датасета для решения задачи бинарной классификации статуса здоровья ('Healthy\_Status') на основе параметров электрокардиограммы (ЭКГ).Датасет был загружен из репозитория GitHub: https://github.com/AI-is-out-there/data2lab.git. Для анализа было взято первые 5000 строк данных.
+
+Была сформирована выборка данных, включающая следующие столбцы: {\texttt{'Count\_subj'}, \texttt{'rr\_interval'}, \texttt{'p\_end'}, \texttt{'qrs\_onset'}, \texttt{'qrs\_end'}, \texttt{'p\_axis'}, \texttt{'qrs\_axis'}, \texttt{'t\_axis'}, \texttt{'Healthy\_Status'}}.
+
+Ключевой задачей является исследование и применение фреймворков AutoML для построения классификатора, оценка его точности с использованием F1-метрики и построение матрицы ошибок (confusion matrix).
+\switchcolumn % switch to right
+
+\section{目标}
+\pcsync 
+本任务的目标是处理一个心脏病学数据集，以解决基于心电图（ECG）参数对健康状况（'Healthy\_Status'）进行二元分类的问题。数据集来源于 GitHub 仓库：https://github.com/AI-is-out-there/data2lab.git。分析选取了数据集的前5000行。
+
+根据要求，构建的训练样本包含以下列：['Count\_subj', 'rr\_interval', 'p\_end', 'qrs\_onset', 'qrs\_end', 'p\_axis', 'qrs\_axis', 't\_axis', 'Healthy\_Status']。
+
+关键任务是研究并应用AutoML（自动化机器学习）框架来构建分类器，使用F1分数（F1-metric）评估其准确性，并构建混淆矩阵（confusion matrix）。
+\switchcolumn* % switch back to left
+
+\section{Реализация с использованием AutoML (PyCaret)}
+\subsection{Загрузка и подготовка данных}\label{subsec2}
+\pcsync
+Данные были загружены с использованием библиотеки pandas из указанного URL. Были отобраны только необходимые столбцы и первые 5000 записей согласно условию задачи.
+
+
+\subsection{Выбор и применение фреймворка AutoML }\label{subsec3}
+\pcsync
+Для решения задачи был выбран фреймворк AutoML PyCaret. PyCaret является библиотекой машинного обучения с низким уровнем кода (low-code), которая автоматизирует рабочие процессы МО. Она позволяет быстро сравнивать различные модели, выполнять предобработку данных и настройку гиперпараметров. Это делает ее подходящим выбором для исследования и быстрого прототипирования согласно заданию.
+
+
+\subsection{Настройка среды PyCaret и сравнение моделей }\label{subsec4}
+\pcsync
+Среда PyCaret была инициализирована с помощью функции setup. В качестве целевой переменной (target) был указан столбец 'Healthy\_Status'. Были применены нормализация данных (normalize=True) и метод для борьбы с дисбалансом классов (\texttt{fix\_imbalance=True}). PyCaret автоматически разделяет данные на обучающую и тестовую выборки (по умолчанию 70/30).
+
+Затем была использована функция compare_models для обучения и сравнения различных моделей классификации с использованием кросс-валидации. Модели были отсортированы по F1-метрике (sort='F1'), чтобы выбрать лучшую модель на основе этого показателя.
+
+
+\subsection{Оценка лучшей модели}\label{subsec5}
+\pcsync
+Лучшая модель, выбранная на предыдущем шаге, была оценена на отложенной тестовой выборке (hold-out set) с помощью функции predict_model. Эта функция автоматически рассчитывает различные метрики производительности, включая F1-метрику, и строит матрицу ошибок.
+\switchcolumn
+
+\section{使用AutoML（PyCaret）的算法实现}
+\subsection{数据加载与准备}\label{subsec2}
+\pcsync
+使用 pandas 库从指定的URL加载了数据。根据任务要求，仅选择了必需的列和前5000条记录。
+
+\subsection{AutoML框架的选择与应用 }\label{subsec3}
+\pcsync
+为了完成此任务，我们选择了 PyCaret AutoML框架。PyCaret 是一个低代码（low-code）机器学习库，可以自动化机器学习工作流程。它能够快速比较多种模型、执行数据预处理和超参数调整，非常适合本任务中要求的探索和快速原型设计。
+
+\subsection{PyCaret环境设置与模型比较 }\label{subsec4}
+\pcsync
+使用 setup 函数初始化了PyCaret环境。目标变量（target）指定为 \texttt{Healthy\_Status} 列。应用了数据归一化（\texttt{normalize=True}）和处理类别不平衡的方法（\texttt{fix_imbalance=True}）。PyCaret自动将数据划分为训练集和测试集（默认为70/30）。
+
+接着，使用 compare_models 函数通过交叉验证来训练和比较多种分类模型。这些模型按照F1分数（sort='F1'）进行排序，以便根据该指标选出最佳模型。
+\subsection{最佳模型评估 }\label{subsec5}
+\pcsync
+上一步选出的最佳模型，使用 predict_model 函数在预留的测试集（hold-out set）上进行了评估。该函数会自动计算包括F1分数在内的多种性能指标，并构建混淆矩阵。
+\switchcolumn*
+
+\section{Результаты}
+\pcsync
+При выполнении кода compare_models PyCaret представляет таблицу с результатами кросс-валидации для всех протестированных моделей, отсортированную по F1-метрике. Это позволяет определить, какая модель показала наилучшие результаты на обучающих данных. Имя лучшей модели выводится в консоль.
+
+...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{使用pychat比较模型根据F1.jpg}
+    \caption{Заполнитель для таблицы сравнения моделей PyCaret}
+    \label{fig:enter-label}
+\end{figure}
+
+Функция predict_model, примененная к лучшей модели, генерирует отчет об оценке на тестовой выборке. Этот отчет включает:
+
+1. Матрицу ошибок (Confusion Matrix): Визуальное представление точности классификатора, показывающее количество истинно положительных, истинно отрицательных, ложно положительных и ложно отрицательных предсказаний.
+
+2. Таблицу метрик производительности: Включая Accuracy, AUC, Recall, Precision, F1-метрику, Kappa, MCC для тестового набора данных.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{根据 F1指标选出的最佳模型CatBoostClassifier.jpg}
+    \caption{Матрицы Ошибок (Confusion Matrix)}
+    \label{fig:enter-label}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{在保留测试集上评估最佳模型.jpg}
+    \caption{таблицы метрик из predict_model}
+    \label{fig:enter-label}
+\end{figure}
+Ключевые результаты, требуемые заданием - F1-метрика и матрица ошибок - автоматически генерируются и отображаются функцией predict_model при выполнении кода. F1-метрика позволяет оценить баланс между точностью (precision) и полнотой (recall) классификатора, что особенно важно при работе с несбалансированными данными, как это часто бывает в медицинских задачах. Матрица ошибок дает детальное представление о типах ошибок, допускаемых моделью.
+\switchcolumn
+
+\section{结果}
+\pcsync
+执行 compare_models 代码时，PyCaret会展示一个表格，其中包含所有测试模型的交叉验证结果，并按F1分数排序。这有助于确定哪个模型在训练数据上表现最佳。最佳模型的名称会输出到控制台。
+
+...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{使用pychat比较模型根据F1.jpg}
+    \caption{PyCaret模型比较表格}
+    \label{fig:enter-label}
+\end{figure}
+应用于最佳模型的 predict_model 函数会生成在测试集上的评估报告。该报告包含：
+
+1. 混淆矩阵 (Confusion Matrix): 分类器准确性的可视化表示，显示真正例、真负例、假正例和假负例的数量。
+
+2. 性能指标表: 包括测试集上的准确率（Accuracy）、AUC、召回率（Recall）、精确率（Precision）、F1分数（F1-score）、Kappa 和 MCC。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{根据 F1指标选出的最佳模型CatBoostClassifier.jpg}
+    \caption{混淆矩阵（Confusion Matrix）}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{在保留测试集上评估最佳模型.jpg}
+    \caption{在保留测试集上评估最佳模型}
+    \label{fig:enter-label}
+\end{figure}
+任务要求的关键结果——F1分数和混淆矩阵——在执行代码时由 predict_model 函数自动生成和显示。F1分数评估了分类器的精确率（precision）和召回率（recall）之间的平衡，这在处理不平衡数据集（如医疗任务中常见的那样）时尤为重要。混淆矩阵则详细展示了模型所犯错误的类型。
+\switchcolumn*
+
+
+\section{Заключение}
+\pcsync
+
+Задача по обработке кардиологического датасета и построению бинарного классификатора с использованием AutoML была успешно выполнена. Был использован фреймворк PyCaret для автоматизации процесса выбора и оценки моделей. Определена лучшая модель на основе F1-метрики, и для нее были рассчитаны F1-показатель и построена матрица ошибок на тестовой выборке, что соответствует требованиям задания.
+
+Использование PyCaret позволило эффективно сравнить множество моделей и получить оценку производительности классификатора с минимальными усилиями по написанию кода.
+\switchcolumn
+
+\section{结论}
+\pcsync
+使用AutoML处理心脏病学数据集并构建二元分类器的任务已成功完成。利用PyCaret框架自动化了模型选择和评估过程。基于F1分数确定了最佳模型，并按照任务要求，在测试集上计算了该模型的F1得分并构建了混淆矩阵。
+
+PyCaret的使用使得能够以最少的编码工作高效地比较多种模型，并获得分类器性能的评估结果。
+\switchcolumn*
+
+\end{paracol}
+\balance
+\end{document}
